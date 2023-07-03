@@ -7,11 +7,16 @@ import { api } from "~/utils/api";
 
 export default function Home() {
 
+
   const hello = api.example.hello.useQuery({ text: "from tRPC" });
+
+  const kiubo = api.example.greeting.useQuery({ name:"Plebe"})
 
  const { user }  = useUser()
 
  
+  console.log("Kiubo")
+ console.log(kiubo.data)
  
   return (
     <>
