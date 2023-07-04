@@ -3,7 +3,7 @@ import styles from "./index.module.css";
 import Head from "next/head";
 import { api } from "~/utils/api";
 
-import { CourseGrid } from "~/components/course-grid";
+import { CourseGrid } from "../components/course-grid";
 
 
 
