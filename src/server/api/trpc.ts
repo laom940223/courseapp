@@ -6,38 +6,16 @@
  * TL;DR - This is where all the tRPC server stuff is created and plugged in. The pieces you will
  * need to use are documented accordingly near the end.
  */
-import { getAuth } from "@clerk/nextjs/server";
+import { clerkClient } from "@clerk/nextjs";
+import { currentUser, getAuth } from "@clerk/nextjs/server";
 import { TRPCError, initTRPC } from "@trpc/server";
 import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
 import superjson from "superjson";
 import { ZodError } from "zod";
 import { prisma } from "~/server/db";
 
-/**
- * 1. CONTEXT
- *
- * This section defines the "contexts" that are available in the backend API.
- *
- * These allow you to access things when processing a request, like the database, the session, etc.
- */
 
-type CreateContextOptions = Record<string, never>;
 
-/**
- * This helper generates the "internals" for a tRPC context. If you need to use it, you can export
- * it from here.
- *
- * Examples of things you may need it for:
- * - testing, so we don't have to mock Next.js' req/res
- * - tRPC's `createSSGHelpers`, where we don't have req/res
- *
- * @see https://create.t3.gg/en/usage/trpc#-serverapitrpcts
- */
-const createInnerTRPCContext = (_opts: CreateContextOptions) => {
-  return {
-    prisma,
-  };
-};
 
 /**
  * This is the actual context you will use in your router. It will be used to process every request
@@ -45,16 +23,23 @@ const createInnerTRPCContext = (_opts: CreateContextOptions) => {
  *
  * @see https://trpc.io/docs/context
  */
-export const createTRPCContext = (opts: CreateNextContextOptions) => {
-
-
+export const createTRPCContext = async (opts: CreateNextContextOptions) => {
+  
+  let orgs: string[] = []
   const auth =   getAuth(opts.req)
 
-  console.log(auth)
-  const userId = auth.userId
-  
+  if(!!auth.userId){
 
-  return {prisma, userId};
+    
+    const list = await clerkClient.users.getOrganizationMembershipList({userId: auth.userId})
+  // const org = await clerkClient.users.getOrganizationMembershipList({userId: auth.userId || ""})
+    
+     orgs = list.map(org=>org.organization.name)
+
+
+
+  }
+  return {prisma, auth, orgs };
 };
 
 /**
@@ -105,7 +90,7 @@ export const publicProcedure = t.procedure;
 
 const enforceUserIsAuthed = t.middleware(async({ ctx, next})=>{
 
-  if (!ctx.userId) {
+  if (!ctx.auth.userId) {
     throw new TRPCError({
       code: "UNAUTHORIZED",
     });
@@ -113,7 +98,7 @@ const enforceUserIsAuthed = t.middleware(async({ ctx, next})=>{
 
   return next({
     ctx: {
-      userId: ctx.userId,
+      userId: ctx.auth.userId,
     },
   });
 
@@ -122,3 +107,35 @@ const enforceUserIsAuthed = t.middleware(async({ ctx, next})=>{
 
 
 export const privateProcedure = t.procedure.use(enforceUserIsAuthed)
+
+
+
+const enforceIsEmployee = t.middleware( async({ ctx,  next })=>{
+
+
+  
+
+  if(ctx.orgs.length == 0) { 
+
+    throw new TRPCError({
+      code:"UNAUTHORIZED"
+    })
+  }
+
+  const isEmployee = ctx.orgs.filter(org => org =="employee").length >  0
+
+  if(isEmployee){
+
+    throw new TRPCError({
+      code:"UNAUTHORIZED"
+    })
+  }
+
+  return  next()
+
+
+})
+
+
+
+export const adminProcedure = t.procedure.use(enforceIsEmployee)

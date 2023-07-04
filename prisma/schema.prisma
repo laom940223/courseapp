@@ -11,8 +11,15 @@ datasource db {
 }
 
 
-model Example {
-    id        String   @id @default(cuid())
+model Course {
+    id                String   @id @default(cuid())
+    name              String
+    price             Float
+    description       String
+    heroImage         String
+    teacher_id        String
+
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
+    
 }

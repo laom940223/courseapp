@@ -2,7 +2,7 @@
 import { AppShell, Header, Button, Title, Flex, Grid, Menu, Group, Avatar, rem, UnstyledButton, Loader } from '@mantine/core';
 
 import React, {forwardRef} from 'react'
-import { useUser, SignInButton, SignOutButton, useClerk, SignUpButton } from "@clerk/nextjs";
+import { useUser, SignInButton, SignOutButton, useClerk, SignUpButton, useOrganizations } from "@clerk/nextjs";
 import { IconExternalLink } from '@tabler/icons-react';
 import Link from 'next/link';
 
@@ -51,13 +51,17 @@ export default function Layout ({children} : {children: React.ReactNode}){
 
 
     const {user, isLoaded} = useUser()
-    const { signOut} = useClerk()
+    const { signOut, } = useClerk()
 
+    console.log(user)
+
+
+    
     const onClickLogOut =  ()=>{
 
 
       signOut().then(()=>{
-        console.log("Loggin oout")
+        console.log("Loggin out")
       }).catch(err=>{console.log("Something went wrong")})
     }
 
@@ -105,7 +109,7 @@ export default function Layout ({children} : {children: React.ReactNode}){
                               <Menu.Target>
                                 
                                 
-                                  <AvatarTarget image={user.imageUrl} name={user.username!} />
+                                  <AvatarTarget image={user.imageUrl} name={user.fullName!} />
                                   
                               
 
@@ -114,7 +118,7 @@ export default function Layout ({children} : {children: React.ReactNode}){
 
                               </Menu.Target>
                                     <Menu.Dropdown sx={{padding:".5em 1em"}}>
-                                    <Menu.Label>Hola {`${user.firstName!}`}</Menu.Label>
+                                    <Menu.Label>Hola {`${user.fullName!}`}</Menu.Label>
                                         <Menu.Item
                                           icon={<IconExternalLink size={rem(14)} />}
                                           onClick={onClickLogOut}

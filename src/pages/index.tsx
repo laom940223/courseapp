@@ -1,23 +1,27 @@
-import { useUser } from "@clerk/nextjs";
+
 import styles from "./index.module.css";
 import Head from "next/head";
-import Link from "next/link";
 import { api } from "~/utils/api";
+
+import { CourseGrid } from "~/components/course-grid";
+
+
+
 
 
 export default function Home() {
 
+  
+  // const ctx = api.useContext()
 
-  const hello = api.example.hello.useQuery({ text: "from tRPC" });
+    api.courses.getAllCourses.useQuery()
+  
 
-  const kiubo = api.example.greeting.useQuery({ name:"Plebe"})
 
- const { user }  = useUser()
+  
 
- 
-  console.log("Kiubo")
- console.log(kiubo.data)
- 
+  
+
   return (
     <>
       <Head>
@@ -26,19 +30,12 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className={styles.main}>
-        <div className={styles.container}>
-          <h1 className={styles.title}>
-            Create <span className={styles.pinkSpan}>T3</span> App
-          </h1>
-          <div className={styles.cardRow}>
+       
+            <CourseGrid/>        
         
 
 
-          </div>
-          <p className={styles.showcaseText}>
-            {hello.data ? hello.data.greeting : "Loading tRPC query..."}
-          </p>
-        </div>
+    
       </main>
     </>
   );
